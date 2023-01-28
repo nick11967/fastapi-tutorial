@@ -8,4 +8,4 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY ./sql_app /code/sql_app
 
-CMD ["uvicorn", "sql_app.main:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "sql_app.main:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "8000"]
