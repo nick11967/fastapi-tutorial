@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
@@ -17,6 +17,15 @@ def get_db():
         yield db
     finally:
         db.close()
+        
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
+
+
+@app.get("/items/{item_id}")
+def read_item(item_id: int, q: Union[str, None] = None):
+    return {"item_id": item_id, "q": q}
         
 
 @app.post("/users/", response_model=schemas.User)
