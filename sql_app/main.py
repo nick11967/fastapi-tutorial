@@ -25,7 +25,8 @@ def generate_code(db: Session = Depends(get_db)):
     chars = string.ascii_uppercase + string.digits
     while True:
         temp = ''.join(random.choice(chars) for x in range(6))
-        if crud.get_room_by_roomcode(temp):
+        db_room = crud.get_room_by_roomcode(temp)
+        if db_room:
             continue
         else:
             return temp
