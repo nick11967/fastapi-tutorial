@@ -51,10 +51,6 @@ def get_player(db: Session, nickname: str):
 def get_players(db: Session, skip: int = 0, limit: int = 100):
      return parse_obj_as(schemas.List[schemas.Player], db.query(models.Player).offset(skip).limit(limit).all())
 
-def get_room(db: Session, nickname: str):
-    return db.query(models.Player).filter(models.Player.nickname == nickname).first()
-# ? 플레이어의 room code에 접근하는 법
-
 def get_room_by_roomcode(db:Session, room_code: str):
     db_room = db.db.query(models.Room).filter(models.Room.code == room_code).first()
     if db_room is None:
@@ -86,6 +82,7 @@ def update_turndend(db: Session, room_code: str):
     db_room = get_room_by_roomcode(db, room_code=room_code)
     db_room.update({
         # turninfo 증가 
+        "turninfo": db_room.turninfo + 1 # ?
     })
     db.commit()
     db.refresh(db_room)
