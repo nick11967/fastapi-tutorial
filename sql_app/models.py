@@ -9,7 +9,8 @@ class Room(Base):
     
     code = Column(String, primary_key=True, index=True) # 플레이어들이 코드를 입력해서 방에 들어옴
     # id = Column(Integer, unique=True, index=True) # 방 번호
-    deck = Column(List[int]) # ?
+    deck = Column(List[int]) # String(50)?
+    # https://stackoverflow.com/questions/7300230/using-list-as-a-data-type-in-a-column-sqlalchemy
     turninfo = Column(Integer) 
     player_num = Column(Integer)
     
