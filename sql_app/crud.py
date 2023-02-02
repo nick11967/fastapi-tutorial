@@ -4,6 +4,8 @@ from . import models, schemas
 
 from pydantic import parse_obj_as
 
+from typing import List 
+
 def get_player(db: Session, nickname: str):
     db_player = db.query(models.Player).filter(models.Player.nickname == nickname).first()
     if db_player is None:
@@ -42,8 +44,9 @@ def create_player(db: Session, nickname: str):
     db.refresh(db_player)
     return schemas.Player.from_orm(db_player)
 
-def create_room(db: Session, code: str, deck: int, player_num: int):
-    db_room = models.Room(code=code, deck=deck, turninfo=0, player_num=player_num)
+def create_room(db: Session, code: str, deck: List[int], player_num: int):
+    db_room = models.Room(code=code, turninfo=0, deck=deck, player_num=player_num)
+    db.add(db_room)
     db.commit()
     db.refresh(db_room)
     return schemas.Room.from_orm(db_room)
@@ -93,8 +96,8 @@ def delete_room(db: Session, room_code: str):
     db_players = get_players_in_room(db, room_code=room_code)
     for player in db_players:
         player.update({
-            "room_code": None,
-            "cards": None,
+            "room_code": 0,
+            "cards": [],
             "room": None
         })
     db_room.delete()
