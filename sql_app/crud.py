@@ -32,6 +32,9 @@ def get_room_by_roomcode(db:Session, room_code: str):
 def get_rooms(db: Session, skip: int = 0, limit: int = 100):
     return parse_obj_as(schemas.List[schemas.Room], db.query(models.Room).offset(skip).limit(limit).all())
 
+def get_player_num(db:Session, room_code: str):
+    return db.query(models.Player).filter(models.Player.room_code == room_code).count()
+
 def create_player(db: Session, nickname: str):
     db_player = models.Player(nickname=nickname)
     db.add(db_player)
@@ -59,6 +62,22 @@ def update_player_room(db: Session, nickname: str, room_code: str):
     db.refresh(db_room)
     return schemas.Player.from_orm(db_player)
 
+def update_player_card(db: Session, card_num: int, num: int, nickname: str, room_code: str):
+    db_room = get_room_by_roomcode(db, room_code=room_code)
+    db_player = get_player(db, nickname)
+    if num == 0:          # 카드 구매
+        db_player.cards.append(card_num)
+        db_room.deck.remove(card_num)
+    elif num == 1:        # 카드 버림
+        db_player.cards.remove(card_num)
+    else:
+        pass
+    db.commit()
+    db.refresh(db_player)
+    db.refresh(db_room)
+    return schemas.Player.from_orm(db_player)
+
+
 def update_turndend(db: Session, room_code: str):
     db_room = get_room_by_roomcode(db, room_code=room_code)
     db_room.update({
@@ -81,3 +100,4 @@ def delete_room(db: Session, room_code: str):
     db_room.delete()
     db.commit()
     db.refresh(db_players)
+
