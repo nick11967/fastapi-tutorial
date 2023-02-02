@@ -13,24 +13,21 @@ class PlayerCreate(PlayerBase): # 인스턴스를 생성할 때에만 필요하�
     
 class Player(PlayerBase): # 인스턴스를 읽을 때에만 표시되고 생성할 때에는 없어도 되는 속성
     cards: List[int] = []
-    
+
     class Config:
         orm_mode = True
         
 class RoomBase(BaseModel): 
-    # id: int
+    deck: List[int] = []
     code: str
+    player_num: int
+    turninfo: int
       
 class RoomCreate(RoomBase): 
     pass
 
 class Room(RoomBase): 
-    deck: List[int] = []
-    turninfo: int
-    
     players: List[Player] = []
-    player_num: int
-    
     class Config:
         orm_mode = True
 

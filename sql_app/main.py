@@ -25,7 +25,7 @@ def generate_code(db: Session = Depends(get_db)):
     chars = string.ascii_uppercase + string.digits
     while True:
         temp = ''.join(random.choice(chars) for x in range(6))
-        db_room = crud.get_room_by_roomcode(temp)
+        db_room = crud.get_room_by_roomcode(db=db, room_code=temp)
         if db_room:
             continue
         else:
@@ -38,12 +38,12 @@ def generate_deck(db: Session = Depends(get_db)):
     return deck
 
 # 방 생성, 생성된 방 코드 반환      
-@app.post("/rooms/", response_model=schemas.Room) # response_model: 반환 데이터 타입
+@app.post("/rooms/") # response_model: 반환 데이터 타입
 def create_room(player_num, db: Session = Depends(get_db)):
     room_code = generate_code(db) 
     deck = generate_deck(db)
     db_room = crud.create_room(db, code=room_code, deck=deck, player_num=player_num)
-    return {"room_code": room_code}    
+    return {"room_code": db_room.code}    
 
 # 닉네임 중복 검사
 @app.get("/players/")  
@@ -55,10 +55,10 @@ def check_nickname_exists(nickname: str, db: Session = Depends(get_db)):
         return False    
         
 # 플레이어 닉네임 받아 생성
-@app.post("/players/", response_model=schemas.Player) 
+@app.post("/players/") 
 def create_player(nickname: str, db: Session = Depends(get_db)):
     if(check_nickname_exists(nickname, db)):
-        return None
+        raise HTTPException(status_code=404, detail="Nickname already registered")
     else:
         return crud.create_player(db=db, nickname=nickname)
 
@@ -92,6 +92,8 @@ def check_full(room_code: str, db: Session = Depends(get_db)):
 @app.get("/rooms/turninfo/")
 def read_turninfo(room_code: str, db: Session = Depends(get_db)):
     current_room = crud.get_room_by_roomcode(db, room_code=room_code)
+    if current_room is None:
+        raise HTTPException(status_code=404, detail="Room not found")
     turninfo = current_room.turninfo
     return {"turninfo": turninfo} 
 
@@ -153,6 +155,9 @@ def remove_card(card_num: int, nickname: str, room_code: str, db: Session = Depe
 # 턴 종료 처리
 @app.put("/rooms/{room_code}/turnend/", response_model=schemas.Room)
 def make_turnend(room_code: str, db: Session = Depends(get_db)):
+    db_room = crud.get_room_by_roomcode(db, room_code=room_code)
+    if db_room is None:
+        raise HTTPException(status_code=404, detail="Room not found")
     db_room = crud.update_turndend(db, room_code=room_code)
     return db_room
 

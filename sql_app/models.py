@@ -14,8 +14,8 @@ class Room(Base):
     # id = Column(Integer, unique=True, index=True) # 방 번호
     deck = Column(MutableList.as_mutable(PickleType), default=[])
     # https://stackoverflow.com/questions/7300230/using-list-as-a-data-type-in-a-column-sqlalchemy
-    turninfo = Column(Integer) 
-    player_num = Column(Integer)
+    turninfo = Column(Integer, default=0) 
+    player_num = Column(Integer, default=0)
     
     players = relationship("Player", back_populates="room")
 
@@ -26,7 +26,7 @@ class Player(Base):
     # id = Column(Integer, unique=True, index=True)
     cards = Column(MutableList.as_mutable(PickleType), default=[])
     # room_id = Column(Integer, ForeignKey("rooms.id"))
-    room_code = Column(String, ForeignKey("rooms.code"))
+    room_code = Column(String, ForeignKey("rooms.code"), default=0)
     
     room = relationship("Room", back_populates="players")
     
