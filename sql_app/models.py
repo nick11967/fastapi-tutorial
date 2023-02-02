@@ -4,12 +4,15 @@ from typing import List
 
 from .database import Base
 
+from sqlalchemy.ext.mutable import MutableList
+from sqlalchemy import PickleType
+
 class Room(Base):
     __tablename__ = "rooms"
     
     code = Column(String, primary_key=True, index=True) # 플레이어들이 코드를 입력해서 방에 들어옴
     # id = Column(Integer, unique=True, index=True) # 방 번호
-    deck = Column(List[int]) # String(50)?
+    deck = Column(MutableList.as_mutable(PickleType), default=[])
     # https://stackoverflow.com/questions/7300230/using-list-as-a-data-type-in-a-column-sqlalchemy
     turninfo = Column(Integer) 
     player_num = Column(Integer)
@@ -21,7 +24,7 @@ class Player(Base):
     
     nickname = Column(String, primary_key=True)
     # id = Column(Integer, unique=True, index=True)
-    cards = Column(List[int]) # ?
+    cards = Column(MutableList.as_mutable(PickleType), default=[])
     # room_id = Column(Integer, ForeignKey("rooms.id"))
     room_code = Column(String, ForeignKey("rooms.code"))
     

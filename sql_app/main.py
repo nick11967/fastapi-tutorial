@@ -31,9 +31,10 @@ def generate_code(db: Session = Depends(get_db)):
         else:
             return temp
         
-# TODO: 덱 생성하는 함수
+# 덱 생성하는 함수
 def generate_deck(db: Session = Depends(get_db)):
-    deck = 0
+    deck = list(range(1, 10)) # 1~9
+    random.shuffle(deck)
     return deck
 
 # 방 생성, 생성된 방 코드 반환      
@@ -77,12 +78,15 @@ def read_roomcode(nickname: str, db: Session = Depends(get_db)):
     return {"room_code": player.room_code}
 
 
-# TODO: 방이 다 찼는지 알려주기
+# 방이 다 찼는지 알려주기
 @app.get("/rooms/{room_code}") 
 def check_full(room_code: str, db: Session = Depends(get_db)):
     db_room = crud.get_room_by_roomcode(db, room_code=room_code)
-    # if(persons 수 > 정해진 인원):
-    return True
+    cur_num = crud.get_player_num(db, room_code=room_code)
+    if(cur_num < db_room.player_num):
+        return False
+    else:
+        return True
 
 # 현재 턴 정보 반환
 @app.get("/rooms/turninfo/")
@@ -128,6 +132,24 @@ def player_to_room(nickname: str, room_code: str, db: Session = Depends(get_db))
     db_player = crud.update_player_room(db, nickname=nickname, room_code=room_code)
     return {"room_code": room_code} 
     
+# 플레이어 카드 구매
+@app.put("/players/{nickname}/cards/", response_model=schemas.Player)
+def buy_card(card_num: int, nickname: str, room_code: str, db: Session = Depends(get_db)):
+    db_player = crud.get_player(db, nickname=nickname)
+    if db_player is None:
+        raise HTTPException(status_code=404, detail="Player not found")
+    db_player = crud.update_player_card(db, card_num=card_num, num=0, nickname=nickname, room_code=room_code)
+    return db_player
+   
+# 플레이어 카드 버림
+@app.put("/players/{nickname}/cards/", response_model=schemas.Player)
+def remove_card(card_num: int, nickname: str, room_code: str, db: Session = Depends(get_db)):
+    db_player = crud.get_player(db, nickname=nickname)
+    if db_player is None:
+        raise HTTPException(status_code=404, detail="Player not found")
+    db_player = crud.update_player_card(db, card_num=card_num, num=1, nickname=nickname, room_code=room_code) 
+    return db_player   
+    
 # 턴 종료 처리
 @app.put("/rooms/{room_code}/turnend/", response_model=schemas.Room)
 def make_turnend(room_code: str, db: Session = Depends(get_db)):
@@ -141,9 +163,6 @@ def delete_room(room_code: str, db: Session = Depends(get_db)):
     if db_room is None:
         raise HTTPException(status_code=404, detail="Room not found")
     crud.delete_room(db, room_code=room_code)
-    db.commit()
- 
-
-# TODO
-
-# put(”/players/{player_id}/cards/”) //  플레이어 카드 처리 (구매, 폐기)
+    db.commit()  
+    
+    
