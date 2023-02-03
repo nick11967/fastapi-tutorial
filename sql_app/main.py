@@ -79,7 +79,7 @@ def read_roomcode(nickname: str, db: Session = Depends(get_db)):
 
 
 # 방이 다 찼는지 알려주기
-@app.get("/rooms/{room_code}") 
+@app.get("/rooms/{room_code}/{player_num}") 
 def check_full(room_code: str, db: Session = Depends(get_db)):
     db_room = crud.get_room_by_roomcode(db, room_code=room_code)
     cur_num = crud.get_player_num(db, room_code=room_code)
@@ -130,8 +130,11 @@ def player_to_room(nickname: str, room_code: str, db: Session = Depends(get_db))
     db_player = crud.get_player(db, nickname=nickname)
     if db_player is None:
         raise HTTPException(status_code=404, detail="Player not found")
-    # 해당 사용자의 룸코드 정보 변경
-    db_player = crud.update_player_room(db, nickname=nickname, room_code=room_code)
+    if check_full(room_code, db):
+        raise HTTPException(status_code=404, detail="Room is full")
+    else:
+        # 해당 사용자의 룸코드 정보 변경
+        db_player = crud.update_player_room(db, nickname=nickname, room_code=room_code)
     return {"room_code": room_code} 
     
 # 플레이어 카드 구매
