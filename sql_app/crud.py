@@ -66,19 +66,19 @@ def update_player_room(db: Session, nickname: str, room_code: str):
     return schemas.Player.from_orm(db_player.first())
 
 def update_player_card(db: Session, card_num: int, num: int, nickname: str, room_code: str):
-    db_room = get_room_by_roomcode(db, room_code=room_code)
-    db_player = get_player(db, nickname)
+    db_room = db.query(models.Room).filter(models.Room.code == room_code)
+    db_player = db.query(models.Player).filter(models.Player.nickname == nickname)
     if num == 0:          # 카드 구매
-        db_player.cards.append(card_num)
-        db_room.deck.remove(card_num)
+        db_player.first().cards.append(card_num)
+        db_room.first().deck.remove(card_num)
     elif num == 1:        # 카드 버림
-        db_player.cards.remove(card_num)
+        db_player.first().cards.remove(card_num)
     else:
         pass
     db.commit()
-    db.refresh(db_player)
-    db.refresh(db_room)
-    return schemas.Player.from_orm(db_player)
+    db.refresh(db_player.first())
+    db.refresh(db_room.first())
+    return schemas.Player.from_orm(db_player.first())
 
 
 def update_turndend(db: Session, room_code: str):
