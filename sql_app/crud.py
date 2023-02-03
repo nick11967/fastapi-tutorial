@@ -93,13 +93,11 @@ def update_turndend(db: Session, room_code: str):
 
 def delete_room(db: Session, room_code: str):
     db_room = db.query(models.Room).filter(models.Room.code == room_code)
-    db_players = get_players_in_room(db, room_code=room_code)
-    for player in db_players:
-        player.update({
-            "room_code": 0,
-            "cards": [],
-            "room": None
-        })
+    db_players = db.query(models.Player).filter(models.Player.room_code == room_code)
+    db_players.update({
+        "room_code" : 0,
+        "cards" : []
+    })
     db_room.delete()
     db.commit()
 
