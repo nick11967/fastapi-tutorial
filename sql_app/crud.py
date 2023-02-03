@@ -82,17 +82,17 @@ def update_player_card(db: Session, card_num: int, num: int, nickname: str, room
 
 
 def update_turndend(db: Session, room_code: str):
-    db_room = get_room_by_roomcode(db, room_code=room_code)
+    db_room = db.query(models.Room).filter(models.Room.code == room_code)
     db_room.update({
         # turninfo 증가 
-        "turninfo": db_room.turninfo + 1
+        "turninfo": db_room.first().turninfo + 1
     })
     db.commit()
-    db.refresh(db_room)
-    return schemas.Room.from_orm(db_room)
+    db.refresh(db_room.first())
+    return schemas.Room.from_orm(db_room.first())
 
 def delete_room(db: Session, room_code: str):
-    db_room = get_room_by_roomcode(db, room_code=room_code)
+    db_room = db.query(models.Room).filter(models.Room.code == room_code)
     db_players = get_players_in_room(db, room_code=room_code)
     for player in db_players:
         player.update({
@@ -102,5 +102,4 @@ def delete_room(db: Session, room_code: str):
         })
     db_room.delete()
     db.commit()
-    db.refresh(db_players)
 
