@@ -52,18 +52,17 @@ def create_room(db: Session, code: str, deck: List[int], player_num: int):
     return schemas.Room.from_orm(db_room)
 
 def update_player_room(db: Session, nickname: str, room_code: str):
-    db_room = get_room_by_roomcode(db, room_code=room_code)
-    db_player = get_player(db, nickname)
-    
+    db_room = db.query(models.Room).filter(models.Room.code == room_code)
+    db_player = db.query(models.Player).filter(models.Player.nickname == nickname)
     db_room.first().players.append(db_player)
-    db_player.first().room.append(db_room)
+
     db_player.update({
-        "room_code" : room_code
+        'room_code': room_code
     })
     db.commit()
-    db.refresh(db_player)
-    db.refresh(db_room)
-    return schemas.Player.from_orm(db_player)
+    db.refresh(db_player.first())
+    db.refresh(db_room.first())
+    return schemas.Player.from_orm(db_player.first())
 
 def update_player_card(db: Session, card_num: int, num: int, nickname: str, room_code: str):
     db_room = get_room_by_roomcode(db, room_code=room_code)
