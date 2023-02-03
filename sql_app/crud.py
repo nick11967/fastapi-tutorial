@@ -69,10 +69,16 @@ def update_player_card(db: Session, card_num: int, num: int, nickname: str, room
     db_room = db.query(models.Room).filter(models.Room.code == room_code)
     db_player = db.query(models.Player).filter(models.Player.nickname == nickname)
     if num == 0:          # 카드 구매
-        db_player.first().cards.append(card_num)
-        db_room.first().deck.remove(card_num)
+        cards = db_player.first().cards
+        cards.append(card_num)
+        db_player.update({'cards':cards})
+        deck = db_room.first().deck
+        deck.remove(card_num)
+        db_room.update({'deck':deck})
     elif num == 1:        # 카드 버림
-        db_player.first().cards.remove(card_num)
+        cards = db_player.first().cards
+        cards.remove(card_num)
+        db_player.update({'cards':cards})
     else:
         pass
     db.commit()
