@@ -105,8 +105,8 @@ def read_profile(nickname: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Player not found")
         # return None
     return {
-        "nickname": player.nickname,
-        "cards": player.cards,
+        "nickname" : player.nickname,
+        "cards" : player.cards,
         "room_code" : player.room_code
     }
 
