@@ -54,8 +54,9 @@ def create_room(db: Session, code: str, deck: List[int], player_num: int):
 def update_player_room(db: Session, nickname: str, room_code: str):
     db_room = db.query(models.Room).filter(models.Room.code == room_code)
     db_player = db.query(models.Player).filter(models.Player.nickname == nickname)
-    db_room.first().players.append(db_player)
 
+    room = db_room.first()
+    room.players.append(db_player.first())
     db_player.update({
         'room_code': room_code
     })

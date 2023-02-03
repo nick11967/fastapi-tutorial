@@ -125,7 +125,7 @@ def read_room(room_code: str, db: Session = Depends(get_db)):
     }
 
 # 코드와 맞는 방에 사용자 추가
-@app.put("/rooms/{room_code}", response_model=schemas.Room)
+@app.put("/rooms/{room_code}")
 def player_to_room(nickname: str, room_code: str, db: Session = Depends(get_db)):
     db_player = crud.get_player(db, nickname=nickname)
     if db_player is None:
