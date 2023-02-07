@@ -32,16 +32,23 @@ def generate_code(db: Session = Depends(get_db)):
             return temp
         
 # 덱 생성하는 함수
-def generate_deck(db: Session = Depends(get_db)):
-    deck = list(range(1, 10)) # 1~9
-    random.shuffle(deck)
+def generate_deck():
+    deck = []
+    num = [0, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7] # 카드 단계별 장 수
+    start = 1
+    for level in range(1, 16): # 1~15
+        level_deck = list(range(start, start + num[level])) # 단계별 카드 리스트
+        start += num[level]
+        random.shuffle(level_deck)
+        for value in level_deck: 
+            deck.append(value)
     return deck
 
 # 방 생성, 생성된 방 코드 반환      
 @app.post("/rooms/") # response_model: 반환 데이터 타입
 def create_room(player_num, db: Session = Depends(get_db)):
     room_code = generate_code(db) 
-    deck = generate_deck(db)
+    deck = generate_deck()
     db_room = crud.create_room(db, code=room_code, deck=deck, player_num=player_num)
     return {"room_code": db_room.code}    
 
