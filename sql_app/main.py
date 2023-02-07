@@ -20,11 +20,18 @@ def get_db():
     finally:
         db.close()
 
-# 방 코드 생성하는 함수: 알파벳+숫자 조합 여섯 자리
+# 방 코드 생성하는 함수: 알파벳 대문자 자음 + 모음 조합. ex) PANEMI, BOZAKI
 def generate_code(db: Session = Depends(get_db)):
-    chars = string.ascii_uppercase + string.digits
+    vowel = 'AEIOU'
+    cons = []
+    for char in string.ascii_uppercase:
+        if char not in vowel:
+            cons.append(char)
     while True:
-        temp = ''.join(random.choice(chars) for x in range(6))
+        temp = ''
+        for i in range(3):
+            temp += random.choice(cons)
+            temp += random.choice(vowel)
         db_room = crud.get_room_by_roomcode(db=db, room_code=temp)
         if db_room:
             continue
