@@ -93,7 +93,7 @@ def read_rooms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 
 
 # 방이 다 찼는지 알려주기
-@app.get("/rooms/{room_code}/player_num/") 
+@app.get("/rooms/{room_code}/isfull/") 
 def check_full(room_code: str, db: Session = Depends(get_db)):
     db_room = crud.get_room_by_roomcode(db, room_code=room_code)
     cur_num = crud.get_player_num(db, room_code=room_code)
@@ -103,7 +103,7 @@ def check_full(room_code: str, db: Session = Depends(get_db)):
         return True
 
 # 해당하는 방의 현재 턴 정보 반환
-@app.get("/rooms/{room_code}/turninfo/")
+@app.get("/rooms/{room_code}/turninfo/") # GetTurnInfo
 def read_turninfo(room_code: str, db: Session = Depends(get_db)):
     current_room = crud.get_room_by_roomcode(db, room_code=room_code)
     if current_room is None:
