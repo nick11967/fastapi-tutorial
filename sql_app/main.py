@@ -51,7 +51,7 @@ def generate_deck():
     return deck
 
 # 방 생성, 생성된 방 코드 반환      
-@app.post("/rooms/") # response_model: 반환 데이터 타입
+@app.post("/rooms/{player_num}") # response_model: 반환 데이터 타입
 def create_room(player_num, db: Session = Depends(get_db)):
     room_code = generate_code(db) 
     deck = generate_deck()
