@@ -107,3 +107,7 @@ def delete_room(db: Session, room_code: str):
     db_room.delete()
     db.commit()
 
+def delete_player(db: Session, nickname: str):
+    db_player = db.query(models.Player).filter(models.Player.nickname == nickname)
+    db_player.delete()
+    db.commit()

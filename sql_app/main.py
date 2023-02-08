@@ -139,7 +139,7 @@ def read_room(room_code: str, db: Session = Depends(get_db)):
     }
 
 # 코드와 맞는 방에 사용자 추가
-@app.put("/rooms/{room_code}")
+@app.put("/rooms/{room_code}/")
 def player_to_room(nickname: str, room_code: str, db: Session = Depends(get_db)):
     db_player = crud.get_player(db, nickname=nickname)
     if db_player is None:
@@ -153,11 +153,11 @@ def player_to_room(nickname: str, room_code: str, db: Session = Depends(get_db))
     
 # 플레이어 카드 처리. 0이면 구매, 1이면 버림
 @app.put("/players/{nickname}/cards/", response_model=schemas.Player)
-def buy_card(behavior: int, card_num: int, nickname: str, room_code: str, db: Session = Depends(get_db)):
+def buy_card(act: int, card_num: int, nickname: str, room_code: str, db: Session = Depends(get_db)):
     db_player = crud.get_player(db, nickname=nickname)
     if db_player is None:
         raise HTTPException(status_code=404, detail="Player not found")
-    db_player = crud.update_player_card(db, card_num=card_num, num=behavior, nickname=nickname, room_code=room_code)
+    db_player = crud.update_player_card(db, card_num=card_num, num=act, nickname=nickname, room_code=room_code)
     return db_player
    
 # 턴 종료 처리
@@ -178,4 +178,11 @@ def delete_room(room_code: str, db: Session = Depends(get_db)):
     crud.delete_room(db, room_code=room_code)
     db.commit()  
     
+@app.delete("/players/{nickname}")
+def delete_player(nickname: str, db: Session = Depends(get_db)):
+    db_player = crud.get_player(db, nickname=nickname)
+    if db_player is None:
+        raise HTTPException(status_code=404, detail="Player not found")
+    crud.delete_player(db, nickname=nickname)
+    db.commit()
     
