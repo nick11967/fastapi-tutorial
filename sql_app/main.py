@@ -50,16 +50,25 @@ def generate_deck():
             deck.append(value)
     return deck
 
-# 방 생성, 생성된 방 코드 반환      
-@app.post("/rooms/{player_num}") # response_model: 반환 데이터 타입
+# 방 생성, 생성된 방 코드 반환    
+# response_model: 반환 데이터 타입  
+@app.post("/rooms/{player_num}") # PostNewRoom
 def create_room(player_num: int, db: Session = Depends(get_db)):
     room_code = generate_code(db) 
     deck = generate_deck()
     db_room = crud.create_room(db, code=room_code, deck=deck, player_num=player_num)
     return db_room.code
 
+# 플레이어 닉네임 받아 생성
+@app.post("/players/{nickname}") # PostNewPlayer
+def create_player(nickname: str, db: Session = Depends(get_db)):
+    if(check_nickname_exists(nickname, db)):
+        raise HTTPException(status_code=404, detail="Nickname already registered")
+    else:
+        return crud.create_player(db=db, nickname=nickname)
+
 # 닉네임 중복 검사
-@app.get("/players/{nickname}")  
+@app.get("/players/{nickname}") # Get
 def check_nickname_exists(nickname: str, db: Session = Depends(get_db)):
     db_player = crud.get_player(db, nickname)
     if db_player:
@@ -67,28 +76,20 @@ def check_nickname_exists(nickname: str, db: Session = Depends(get_db)):
     else:
         return False    
         
-# 플레이어 닉네임 받아 생성
-@app.post("/players/{nickname}") 
-def create_player(nickname: str, db: Session = Depends(get_db)):
-    if(check_nickname_exists(nickname, db)):
-        raise HTTPException(status_code=404, detail="Nickname already registered")
-    else:
-        return crud.create_player(db=db, nickname=nickname)
-
 # 현재 열려 있는 모든 방 반환 
-@app.get("/rooms/", response_model=List[schemas.Room])
+@app.get("/rooms/", response_model=List[schemas.Room]) # GetRooms
 def read_rooms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     rooms = crud.get_rooms(db, skip=skip, limit=limit)
     return rooms
 
-# 방 코드 반환
-@app.get("/rooms/players/{nickname}")
-def read_roomcode(nickname: str, db: Session = Depends(get_db)):
-    player = crud.get_player(db, nickname=nickname)
-    if player is None:
-        raise HTTPException(status_code=404, detail="Player not found")
-        # return None
-    return {"room_code": player.room_code}
+# 방 코드 반환 - 다른 함수와 기능이 겹침
+# @app.get("/rooms/players/{nickname}")
+# def read_roomcode(nickname: str, db: Session = Depends(get_db)):
+#     player = crud.get_player(db, nickname=nickname)
+#     if player is None:
+#         raise HTTPException(status_code=404, detail="Player not found")
+#         # return None
+#     return {"room_code": player.room_code}
 
 
 # 방이 다 찼는지 알려주기
