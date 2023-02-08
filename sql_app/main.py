@@ -38,15 +38,14 @@ def generate_code(db: Session = Depends(get_db)):
         else:
             return temp
         
-# 덱 생성하는 함수
+# 덱 생성하는 함수: 앞의 두 자리: 단계, 뒤의 두 자리: 카드 번호
 def generate_deck():
     deck = []
     num = [0, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7] # 카드 단계별 장 수
-    start = 1
-    for level in range(1, 16): # 1~15
-        level_deck = list(range(start, start + num[level])) # 단계별 카드 리스트
-        start += num[level]
+    for level in range(1, len(num)): # 1~15 각 단계마다
+        level_deck = list(range(1, num[level]+1)) # 단계별 카드 리스트
         random.shuffle(level_deck)
+        level_deck = [level*100 + v for v in level_deck]
         for value in level_deck: 
             deck.append(value)
     return deck
