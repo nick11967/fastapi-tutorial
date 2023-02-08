@@ -50,16 +50,25 @@ def generate_deck():
             deck.append(value)
     return deck
 
-# 방 생성, 생성된 방 코드 반환      
-@app.post("/rooms/") # response_model: 반환 데이터 타입
-def create_room(player_num, db: Session = Depends(get_db)):
+# 방 생성, 생성된 방 코드 반환    
+# response_model: 반환 데이터 타입  
+@app.post("/rooms/{player_num}") # PostNewRoom
+def create_room(player_num: int, db: Session = Depends(get_db)):
     room_code = generate_code(db) 
     deck = generate_deck()
     db_room = crud.create_room(db, code=room_code, deck=deck, player_num=player_num)
-    return {"room_code": db_room.code}    
+    return db_room.code
+
+# 플레이어 닉네임 받아 생성
+@app.post("/players/{nickname}") # PostNewPlayer
+def create_player(nickname: str, db: Session = Depends(get_db)):
+    if(check_nickname_exists(nickname, db)):
+        raise HTTPException(status_code=404, detail="Nickname already registered")
+    else:
+        return crud.create_player(db=db, nickname=nickname)
 
 # 닉네임 중복 검사
-@app.get("/players/")  
+@app.get("/players/{nickname}") # Get
 def check_nickname_exists(nickname: str, db: Session = Depends(get_db)):
     db_player = crud.get_player(db, nickname)
     if db_player:
@@ -67,32 +76,24 @@ def check_nickname_exists(nickname: str, db: Session = Depends(get_db)):
     else:
         return False    
         
-# 플레이어 닉네임 받아 생성
-@app.post("/players/") 
-def create_player(nickname: str, db: Session = Depends(get_db)):
-    if(check_nickname_exists(nickname, db)):
-        raise HTTPException(status_code=404, detail="Nickname already registered")
-    else:
-        return crud.create_player(db=db, nickname=nickname)
-
 # 현재 열려 있는 모든 방 반환 
-@app.get("/rooms/", response_model=List[schemas.Room])
+@app.get("/rooms/", response_model=List[schemas.Room]) # GetRooms
 def read_rooms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     rooms = crud.get_rooms(db, skip=skip, limit=limit)
     return rooms
 
-# 방 코드 반환
-@app.get("/rooms/players/{nickname}")
-def read_roomcode(nickname: str, db: Session = Depends(get_db)):
-    player = crud.get_player(db, nickname=nickname)
-    if player is None:
-        raise HTTPException(status_code=404, detail="Player not found")
-        # return None
-    return {"room_code": player.room_code}
+# 방 코드 반환 - 다른 함수와 기능이 겹침
+# @app.get("/rooms/players/{nickname}")
+# def read_roomcode(nickname: str, db: Session = Depends(get_db)):
+#     player = crud.get_player(db, nickname=nickname)
+#     if player is None:
+#         raise HTTPException(status_code=404, detail="Player not found")
+#         # return None
+#     return {"room_code": player.room_code}
 
 
 # 방이 다 찼는지 알려주기
-@app.get("/rooms/{room_code}/player_num/") 
+@app.get("/rooms/{room_code}/isfull/") 
 def check_full(room_code: str, db: Session = Depends(get_db)):
     db_room = crud.get_room_by_roomcode(db, room_code=room_code)
     cur_num = crud.get_player_num(db, room_code=room_code)
@@ -101,14 +102,14 @@ def check_full(room_code: str, db: Session = Depends(get_db)):
     else:
         return True
 
-# 현재 턴 정보 반환
-@app.get("/rooms/turninfo/")
+# 해당하는 방의 현재 턴 정보 반환
+@app.get("/rooms/{room_code}/turninfo/") # GetTurnInfo
 def read_turninfo(room_code: str, db: Session = Depends(get_db)):
     current_room = crud.get_room_by_roomcode(db, room_code=room_code)
     if current_room is None:
         raise HTTPException(status_code=404, detail="Room not found")
     turninfo = current_room.turninfo
-    return {"turninfo": turninfo} 
+    return turninfo
 
 # 플레이어 정보 {닉네임, 카드, room 코드} 반환
 @app.get("/rooms/players/{nickname}")
@@ -138,7 +139,7 @@ def read_room(room_code: str, db: Session = Depends(get_db)):
     }
 
 # 코드와 맞는 방에 사용자 추가
-@app.put("/rooms/{room_code}")
+@app.put("/rooms/{room_code}/")
 def player_to_room(nickname: str, room_code: str, db: Session = Depends(get_db)):
     db_player = crud.get_player(db, nickname=nickname)
     if db_player is None:
@@ -152,11 +153,11 @@ def player_to_room(nickname: str, room_code: str, db: Session = Depends(get_db))
     
 # 플레이어 카드 처리. 0이면 구매, 1이면 버림
 @app.put("/players/{nickname}/cards/", response_model=schemas.Player)
-def buy_card(behavior: int, card_num: int, nickname: str, room_code: str, db: Session = Depends(get_db)):
+def buy_card(act: int, card_num: int, nickname: str, room_code: str, db: Session = Depends(get_db)):
     db_player = crud.get_player(db, nickname=nickname)
     if db_player is None:
         raise HTTPException(status_code=404, detail="Player not found")
-    db_player = crud.update_player_card(db, card_num=card_num, num=behavior, nickname=nickname, room_code=room_code)
+    db_player = crud.update_player_card(db, card_num=card_num, num=act, nickname=nickname, room_code=room_code)
     return db_player
    
 # 턴 종료 처리
@@ -177,4 +178,11 @@ def delete_room(room_code: str, db: Session = Depends(get_db)):
     crud.delete_room(db, room_code=room_code)
     db.commit()  
     
+@app.delete("/players/{nickname}")
+def delete_player(nickname: str, db: Session = Depends(get_db)):
+    db_player = crud.get_player(db, nickname=nickname)
+    if db_player is None:
+        raise HTTPException(status_code=404, detail="Player not found")
+    crud.delete_player(db, nickname=nickname)
+    db.commit()
     
