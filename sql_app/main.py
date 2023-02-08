@@ -52,14 +52,14 @@ def generate_deck():
 
 # 방 생성, 생성된 방 코드 반환      
 @app.post("/rooms/{player_num}") # response_model: 반환 데이터 타입
-def create_room(player_num, db: Session = Depends(get_db)):
+def create_room(player_num: int, db: Session = Depends(get_db)):
     room_code = generate_code(db) 
     deck = generate_deck()
     db_room = crud.create_room(db, code=room_code, deck=deck, player_num=player_num)
     return db_room.code
 
 # 닉네임 중복 검사
-@app.get("/players/")  
+@app.get("/players/{nickname}")  
 def check_nickname_exists(nickname: str, db: Session = Depends(get_db)):
     db_player = crud.get_player(db, nickname)
     if db_player:
@@ -68,7 +68,7 @@ def check_nickname_exists(nickname: str, db: Session = Depends(get_db)):
         return False    
         
 # 플레이어 닉네임 받아 생성
-@app.post("/players/") 
+@app.post("/players/{nickname}") 
 def create_player(nickname: str, db: Session = Depends(get_db)):
     if(check_nickname_exists(nickname, db)):
         raise HTTPException(status_code=404, detail="Nickname already registered")
@@ -101,14 +101,14 @@ def check_full(room_code: str, db: Session = Depends(get_db)):
     else:
         return True
 
-# 현재 턴 정보 반환
-@app.get("/rooms/turninfo/")
+# 해당하는 방의 현재 턴 정보 반환
+@app.get("/rooms/{room_code}/turninfo/")
 def read_turninfo(room_code: str, db: Session = Depends(get_db)):
     current_room = crud.get_room_by_roomcode(db, room_code=room_code)
     if current_room is None:
         raise HTTPException(status_code=404, detail="Room not found")
     turninfo = current_room.turninfo
-    return {"turninfo": turninfo} 
+    return turninfo
 
 # 플레이어 정보 {닉네임, 카드, room 코드} 반환
 @app.get("/rooms/players/{nickname}")
