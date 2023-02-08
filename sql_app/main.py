@@ -56,7 +56,7 @@ def create_room(player_num, db: Session = Depends(get_db)):
     room_code = generate_code(db) 
     deck = generate_deck()
     db_room = crud.create_room(db, code=room_code, deck=deck, player_num=player_num)
-    return {"room_code": db_room.code}    
+    return db_room.code
 
 # 닉네임 중복 검사
 @app.get("/players/")  
