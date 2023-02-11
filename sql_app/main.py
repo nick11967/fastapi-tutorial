@@ -50,8 +50,7 @@ def generate_deck():
             deck.append(value)
     return deck
 
-# 방 생성, 생성된 방 코드 반환    
-# response_model: 반환 데이터 타입  
+# 방 생성, 생성된 방 코드 반환     
 @app.post("/rooms/{player_num}/") # PostNewRoom
 def create_room(player_num: int, room_title: str, db: Session = Depends(get_db)):
     room_code = generate_code(db) 
@@ -68,7 +67,7 @@ def create_player(nickname: str, db: Session = Depends(get_db)):
         return crud.create_player(db=db, nickname=nickname)
 
 # 닉네임 중복 검사
-@app.get("/players/{nickname}") # Get
+@app.get("/players/{nickname}/isExist/") # Get
 def check_nickname_exists(nickname: str, db: Session = Depends(get_db)):
     db_player = crud.get_player(db, nickname)
     if db_player:
@@ -108,7 +107,7 @@ def read_turninfo(room_code: str, db: Session = Depends(get_db)):
     return turninfo
 
 # 플레이어 정보 {닉네임, 카드, room 코드} 반환
-@app.get("/rooms/players/{nickname}")
+@app.get("/players/{nickname}/playerinfo/")
 def read_profile(nickname: str, db: Session = Depends(get_db)):
     player = crud.get_player(db, nickname=nickname)
     if player is None:
@@ -121,7 +120,7 @@ def read_profile(nickname: str, db: Session = Depends(get_db)):
     }
 
 # Room 정보 {room 코드, 덱, 턴 정보, 플레이어 번호} 반환
-@app.get("/rooms/{room_code}")
+@app.get("/rooms/{room_code}/roominfo/")
 def read_room(room_code: str, db: Session = Depends(get_db)):
     room = crud.get_room_by_roomcode(db, room_code=room_code)
     if room is None:
