@@ -22,7 +22,6 @@ class RoomBase(BaseModel): # 생성, 읽기 공통
     code: str
     title: str
     turninfo: int
-    player_num: int
       
 class RoomCreate(RoomBase): # 생성
     pass

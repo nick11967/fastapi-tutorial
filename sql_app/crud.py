@@ -73,7 +73,6 @@ def update_player_card(db: Session, card_num: int, num: int, nickname: str, room
     db.refresh(db_room.first())
     return schemas.Player.from_orm(db_player.first())
 
-
 def update_turndend(db: Session, room_code: str):
     db_room = db.query(models.Room).filter(models.Room.code == room_code)
     db_room.update({
