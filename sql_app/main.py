@@ -52,11 +52,11 @@ def generate_deck():
 
 # 방 생성, 생성된 방 코드 반환    
 # response_model: 반환 데이터 타입  
-@app.post("/rooms/{player_num}") # PostNewRoom
-def create_room(player_num: int, db: Session = Depends(get_db)):
+@app.post("/rooms/{player_num}/") # PostNewRoom
+def create_room(player_num: int, room_title: str, db: Session = Depends(get_db)):
     room_code = generate_code(db) 
     deck = generate_deck()
-    db_room = crud.create_room(db, code=room_code, deck=deck, player_num=player_num)
+    db_room = crud.create_room(db, code=room_code, title=room_title, deck=deck, player_num=player_num)
     return db_room.code
 
 # 플레이어 닉네임 받아 생성

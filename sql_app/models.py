@@ -13,6 +13,7 @@ class Room(Base):
     code = Column(String, primary_key=True, index=True) # 플레이어들이 코드를 입력해서 방에 들어옴
     title = Column(String, default="Room Title") # 방 제목. 방을 구분하기 쉽게 해줌.
     deck = Column(MutableList.as_mutable(PickleType), default=[])
+    player_num = Column(Integer, default=0)
     turninfo = Column(Integer, default=0)
     # id = Column(Integer, unique=True, index=True)
     

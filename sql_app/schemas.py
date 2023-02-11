@@ -21,6 +21,7 @@ class RoomBase(BaseModel): # 생성, 읽기 공통
     deck: List[int] = []
     code: str
     title: str
+    player_num: int
     turninfo: int
       
 class RoomCreate(RoomBase): # 생성
