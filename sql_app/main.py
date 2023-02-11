@@ -75,28 +75,24 @@ def check_nickname_exists(nickname: str, db: Session = Depends(get_db)):
         return True
     else:
         return False    
-        
+
+# 플레이어 목록 반환
+@app.get("/players/", response_model=List[schemas.Player])
+def read_players(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    players = crud.get_players(db, skip=skip, limit=limit)
+    return players
+
 # 현재 열려 있는 모든 방 반환 
 @app.get("/rooms/", response_model=List[schemas.Room]) # GetRooms
 def read_rooms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     rooms = crud.get_rooms(db, skip=skip, limit=limit)
     return rooms
 
-# 방 코드 반환 - 다른 함수와 기능이 겹침
-# @app.get("/rooms/players/{nickname}")
-# def read_roomcode(nickname: str, db: Session = Depends(get_db)):
-#     player = crud.get_player(db, nickname=nickname)
-#     if player is None:
-#         raise HTTPException(status_code=404, detail="Player not found")
-#         # return None
-#     return {"room_code": player.room_code}
-
-
 # 방이 다 찼는지 알려주기
 @app.get("/rooms/{room_code}/isfull/") 
 def check_full(room_code: str, db: Session = Depends(get_db)):
     db_room = crud.get_room_by_roomcode(db, room_code=room_code)
-    cur_num = crud.get_player_num(db, room_code=room_code)
+    cur_num = crud.get_cur_player_num(db, room_code=room_code)
     if(cur_num < db_room.player_num):
         return False
     else:
@@ -177,7 +173,8 @@ def delete_room(room_code: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Room not found")
     crud.delete_room(db, room_code=room_code)
     db.commit()  
-    
+
+# 플레이어 삭제
 @app.delete("/players/{nickname}")
 def delete_player(nickname: str, db: Session = Depends(get_db)):
     db_player = crud.get_player(db, nickname=nickname)

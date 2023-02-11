@@ -1,9 +1,6 @@
 from sqlalchemy.orm import Session
-
 from . import models, schemas
-
 from pydantic import parse_obj_as
-
 from typing import List 
 
 def get_player(db: Session, nickname: str):
@@ -11,16 +8,6 @@ def get_player(db: Session, nickname: str):
     if db_player is None:
         return None
     return schemas.Player.from_orm(db_player)
-
-'''
-def get_player_by_id(db: Session, player_id: int):
-    db_player = db.query(models.Player).filter(models.Player.id == player_id).first()
-    if db_player is None:
-        return None
-    return schemas.Player.from_orm(db_player)
-'''
-def get_players_in_room(db: Session, room_code: str):
-     return parse_obj_as(schemas.List[schemas.Player], db.query(models.Player).filter(models.Player.room_code == room_code).all())
 
 def get_players(db: Session, skip: int = 0, limit: int = 100):
      return parse_obj_as(schemas.List[schemas.Player], db.query(models.Player).offset(skip).limit(limit).all())
@@ -34,7 +21,7 @@ def get_room_by_roomcode(db:Session, room_code: str):
 def get_rooms(db: Session, skip: int = 0, limit: int = 100):
     return parse_obj_as(schemas.List[schemas.Room], db.query(models.Room).offset(skip).limit(limit).all())
 
-def get_player_num(db:Session, room_code: str):
+def get_cur_player_num(db:Session, room_code: str):
     return db.query(models.Player).filter(models.Player.room_code == room_code).count()
 
 def create_player(db: Session, nickname: str):
@@ -44,8 +31,8 @@ def create_player(db: Session, nickname: str):
     db.refresh(db_player)
     return schemas.Player.from_orm(db_player)
 
-def create_room(db: Session, code: str, deck: List[int], player_num: int):
-    db_room = models.Room(code=code, turninfo=0, deck=deck, player_num=player_num)
+def create_room(db: Session, code: str, title: str, deck: List[int], player_num: int):
+    db_room = models.Room(code=code, title=title, turninfo=0, deck=deck, player_num=player_num)
     db.add(db_room)
     db.commit()
     db.refresh(db_room)

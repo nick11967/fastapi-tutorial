@@ -17,17 +17,19 @@ class Player(PlayerBase): # 인스턴스를 읽을 때에만 표시되고 생성
     class Config:
         orm_mode = True
         
-class RoomBase(BaseModel): 
+class RoomBase(BaseModel): # 생성, 읽기 공통
     deck: List[int] = []
     code: str
-    player_num: int
+    title: str
     turninfo: int
+    player_num: int
       
-class RoomCreate(RoomBase): 
+class RoomCreate(RoomBase): # 생성
     pass
 
-class Room(RoomBase): 
-    players: List[Player] = []
+class Room(RoomBase): # 읽기
+    players: List[Player] = [] 
+
     class Config:
         orm_mode = True
 

@@ -11,11 +11,11 @@ class Room(Base):
     __tablename__ = "rooms"
     
     code = Column(String, primary_key=True, index=True) # 플레이어들이 코드를 입력해서 방에 들어옴
-    # id = Column(Integer, unique=True, index=True) # 방 번호
+    title = Column(String, default="Room Title") # 방 제목. 방을 구분하기 쉽게 해줌.
     deck = Column(MutableList.as_mutable(PickleType), default=[])
-    # https://stackoverflow.com/questions/7300230/using-list-as-a-data-type-in-a-column-sqlalchemy
     turninfo = Column(Integer, default=0) 
-    player_num = Column(Integer, default=0)
+    player_num = Column(Integer, default=0) 
+    # id = Column(Integer, unique=True, index=True)
     
     players = relationship("Player", back_populates="room")
 
@@ -23,10 +23,10 @@ class Player(Base):
     __tablename__ = "players"
     
     nickname = Column(String, primary_key=True)
-    # id = Column(Integer, unique=True, index=True)
     cards = Column(MutableList.as_mutable(PickleType), default=[])
-    # room_id = Column(Integer, ForeignKey("rooms.id"))
     room_code = Column(String, ForeignKey("rooms.code"), default=0)
+    # id = Column(Integer, unique=True, index=True)
+    # room_id = Column(Integer, ForeignKey("rooms.id"))
     
     room = relationship("Room", back_populates="players")
     
