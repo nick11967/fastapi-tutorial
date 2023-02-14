@@ -50,8 +50,10 @@ def generate_deck():
             deck.append(value)
     return deck
 
+# POST --------------------------------------------
+
 # 방 생성, 생성된 방 코드 반환     
-@app.post("/rooms/{player_num}/") # PostNewRoom
+@app.post("/rooms/") # PostNewRoom
 def create_room(player_num: int, room_title: str, db: Session = Depends(get_db)):
     room_code = generate_code(db) 
     deck = generate_deck()
@@ -59,15 +61,17 @@ def create_room(player_num: int, room_title: str, db: Session = Depends(get_db))
     return db_room.code
 
 # 플레이어 닉네임 받아 생성
-@app.post("/players/{nickname}") # PostNewPlayer
+@app.post("/players/") # PostNewPlayer
 def create_player(nickname: str, db: Session = Depends(get_db)):
     if(check_nickname_exists(nickname, db)):
         raise HTTPException(status_code=404, detail="Nickname already registered")
     else:
         return crud.create_player(db=db, nickname=nickname)
 
+# GET ---------------------------------------------
+
 # 닉네임 중복 검사
-@app.get("/players/{nickname}/isExist/") # Get
+@app.get("/players/{nickname}/isExist/")
 def check_nickname_exists(nickname: str, db: Session = Depends(get_db)):
     db_player = crud.get_player(db, nickname)
     if db_player:
@@ -81,6 +85,19 @@ def read_players(skip: int = 0, limit: int = 100, db: Session = Depends(get_db))
     players = crud.get_players(db, skip=skip, limit=limit)
     return players
 
+# 플레이어 정보 {닉네임, 카드, room 코드} 반환
+@app.get("/players/{nickname}/playerinfo/")
+def read_profile(nickname: str, db: Session = Depends(get_db)):
+    player = crud.get_player(db, nickname=nickname)
+    if player is None:
+        raise HTTPException(status_code=404, detail="Player not found")
+        # return None
+    return {
+        "nickname" : player.nickname,
+        "cards" : player.cards,
+        "room_code" : player.room_code
+    }
+    
 # 현재 열려 있는 모든 방 반환 
 @app.get("/rooms/", response_model=List[schemas.Room]) # GetRooms
 def read_rooms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
@@ -106,19 +123,6 @@ def read_turninfo(room_code: str, db: Session = Depends(get_db)):
     turninfo = current_room.turninfo
     return turninfo
 
-# 플레이어 정보 {닉네임, 카드, room 코드} 반환
-@app.get("/players/{nickname}/playerinfo/")
-def read_profile(nickname: str, db: Session = Depends(get_db)):
-    player = crud.get_player(db, nickname=nickname)
-    if player is None:
-        raise HTTPException(status_code=404, detail="Player not found")
-        # return None
-    return {
-        "nickname" : player.nickname,
-        "cards" : player.cards,
-        "room_code" : player.room_code
-    }
-
 # Room 정보 {room 코드, 덱, 턴 정보, 플레이어 번호} 반환
 @app.get("/rooms/{room_code}/roominfo/")
 def read_room(room_code: str, db: Session = Depends(get_db)):
@@ -132,6 +136,8 @@ def read_room(room_code: str, db: Session = Depends(get_db)):
         "turninfo": room.turninfo, 
         "player_num": room.player_num
     }
+
+# PUT ---------------------------------------------
 
 # 코드와 맞는 방에 사용자 추가
 @app.put("/rooms/{room_code}/")
@@ -163,6 +169,8 @@ def make_turnend(room_code: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Room not found")
     db_room = crud.update_turndend(db, room_code=room_code)
     return db_room
+
+# DELETE ------------------------------------------
 
 # 방 삭제, 플레이어 정보 닉네임 제외하고 삭제
 @app.delete("/rooms/{room_code}")
